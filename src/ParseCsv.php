@@ -17,7 +17,7 @@
  * @license http://opensource.org/licenses/Apache-2.0 Apache 2.0 License (Frank Mckechnie)
  */
  
- namespace tranquilo\parsecsv;
+namespace Tranquilo;
 
 class ParseCsv
 {
@@ -29,7 +29,7 @@ class ParseCsv
     private $data = [];
     private $row_count = 0;
 
-    public function __construct($filename = '')
+    public function __construct($fileName = '')
     {
         if ($fileName != '') {
             $this->fileName = $fileName;
@@ -61,9 +61,9 @@ class ParseCsv
     	// clear results 
     	$this->reset();
 
-        $file = fopen($this->filename, 'r');
-        while (!feof()) {
-            $row = fgetcsv($file, 0, self::delimiter);
+        $file = fopen($this->fileName, 'r');
+        while (!feof($file)) {
+            $row = fgetcsv($file, 0, static::$delimiter);
             if ($row == [null] || $row === false) {
                 continue;
             }
@@ -78,7 +78,7 @@ class ParseCsv
         return $this->data;
     }
 
-    
+
 
     public function getRowCount()
     {

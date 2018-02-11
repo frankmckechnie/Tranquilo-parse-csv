@@ -22,7 +22,11 @@ Some examples.
 
 ```php
 
-$parser = new ParseCSV(__DIR__ . 'test.csv');
+require __DIR__ . '/vendor/autoload.php';
+
+use Tranquilo\ParseCsv;
+
+$parser = new ParseCsv(__DIR__ . '/test.csv');
 $csvAry = $parser->parse();
 
 ```
