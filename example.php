@@ -6,3 +6,5 @@ use Tranquilo\ParseCsv;
 
 $parser = new ParseCsv(__DIR__ . '/test.csv');
 $csvAry = $parser->parse();
+
+print_r($csvAry);

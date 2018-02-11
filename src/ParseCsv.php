@@ -67,7 +67,7 @@ class ParseCsv
             if ($row == [null] || $row === false) {
                 continue;
             }
-            if ($this->header) {
+            if (!$this->header) {
                 $this->header = $row;
             } else {
                 $this->data[] = array_combine($this->header, $row);

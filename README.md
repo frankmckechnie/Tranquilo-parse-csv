@@ -1,4 +1,4 @@
-#Parse-csv
+##Parse-csv
 
 Tranquilo Parse-csv is a miniscule PHP application library. The library allows you to pass a csv file where some validation is done to insure your data is given back within an array. 
 
@@ -28,5 +28,7 @@ use Tranquilo\ParseCsv;
 
 $parser = new ParseCsv(__DIR__ . '/test.csv');
 $csvAry = $parser->parse();
+
+print_r($csvAry);
 
 ```
