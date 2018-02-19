@@ -21,15 +21,26 @@ namespace Tranquilo;
 
 class ParseCsv
 {
-     
+
     public static $delimiter = ",";
+
+    public $encodingTypes = array(
+        "UTF-8",
+        "UTF-32",
+        "UTF-32BE",
+        "UTF-32LE",
+        "UTF-16",
+        "UTF-16BE",
+        "UTF-16LE"
+    );
 
     private $fileName;
     private $header;
     private $data = [];
     private $row_count = 0;
+    private $encoding = "UTF-8";
 
-    public function __construct($fileName = '')
+    public function __construct($fileName = '', $encoding = '')
     {
         if ($fileName != '') {
             $this->fileName = $fileName;
@@ -39,27 +50,54 @@ class ParseCsv
 
     public function file(string $fileName)
     {
-    	if (file_exists($fileName)) {
-    		echo "File does not exists";
-    		return false;
-    	} elseif (!is_readable($filename)) {
-    		echo "File is not readable";
-    		return false;
-    	}
-    	
-    	$this->fileName = $fileName;
-    	return true;
+        if (file_exists($fileName)) {
+            echo "File does not exists";
+            return false;
+        } elseif (!is_readable($filename)) {
+            echo "File is not readable";
+            return false;
+        }
+    
+        $this->fileName = $fileName;
+        return true;
     }
+
+    function GetEncoding()
+    {
+        $data = file_get_contents( $this->fileName );
+        
+        $encodingType = mb_detect_encoding( $data, $this->encodingTypes, TRUE );
+
+        return $encodingType;
+    }
+
+    function utf8_fopen_read($fileName) 
+    { 
+
+        if( $encoding !== "UTF-8" ) {
+            $data = mb_convert_encoding( $data, $this->encoding, $encodingType );
+        }
+
+        return $data;
+
+
+        $input = mb_convert_encoding( $input, "UTF-8", $encoding );
+        $fc = iconv('windows-1250', 'utf-8', file_get_contents($fileName)); 
+        $handle = fopen("php://memory", "rw"); 
+        fwrite($handle, $fc); 
+        fseek($handle, 0);
+        return $handle; 
+    } 
 
     public function parse()
     {
-    	if (!isset($this->fileName)) {
-    		echo "File not set!";
-    		return false;
-    	}
+        if (!isset($this->fileName)) {
+            echo "File not set!";
+            return false;
+        }
 
-    	// clear results 
-    	$this->reset();
+        // clear results
+        $this->reset();
 
         $file = fopen($this->fileName, 'r');
         while (!feof($file)) {
@@ -78,18 +116,16 @@ class ParseCsv
         return $this->data;
     }
 
-
-
     public function getRowCount()
     {
         return $this->$row_count;
     }
 
 
-    private function reset() 
+    private function reset()
     {
-    	$this->header = NULL;
-    	$this->data = [];
-    	$this->row_count = 0;
+        $this->header = null;
+        $this->data = [];
+        $this->row_count = 0;
     }
 }
