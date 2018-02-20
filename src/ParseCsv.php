@@ -62,7 +62,7 @@ class ParseCsv
         return true;
     }
 
-    function GetEncoding()
+    public function getEncoding()
     {
         $data = file_get_contents( $this->fileName );
         
@@ -71,7 +71,7 @@ class ParseCsv
         return $encodingType;
     }
 
-    function utf8_fopen_read($fileName) 
+    public function convertEncoding($fileName) 
     { 
 
         if( $encoding !== "UTF-8" ) {
