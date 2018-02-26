@@ -2,21 +2,23 @@
 //load in auto files
 require __DIR__ . '/vendor/autoload.php';
 
-// use Tranquilo\ParseCsv;
+use Tranquilo\ParseCsv;
+use Tranquilo\Exceptions\CsvException;
 
-// $parser = new ParseCsv(__DIR__ . '/test.csv');
-// $csvAry = $parser->parse();
+try{
+	$parser = new ParseCsv("   ");
+	$csvAry = $parser->parse();
+}catch(CsvException $e){
+	echo $e->getMessage();
+}catch (Exception $ex){
+	echo "I am ecx ";
+}
 
 // $file = fopen(__DIR__ . '/test.csv', 'r');
-
-
-
-
-echo $encoding;
-
 
 // //print_r($csvAry);
 
 
 // return as object or array 
+
 
