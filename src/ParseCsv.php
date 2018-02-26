@@ -23,8 +23,7 @@ use Tranquilo\Exceptions\CsvException;
 
 class ParseCsv
 {
-
-    public $delimiter = ",";
+    public $delimiter;
 
     public $encodingTypes = array(
         "UTF-8",
@@ -36,69 +35,53 @@ class ParseCsv
         "UTF-16LE"
     );
 
+    private $file;
     private $fileName;
     private $header;
     private $data = array();
-    private $row_count = 0;
+    private $rowCount = 0;
     private $encoding = "UTF-8";
-    private $length; 
+    private $fileExists = false; 
+     
 
-    public function __construct(string $fileName)
+    public function __construct(string $fileName = '', string $delimiter = ',', bool $header = false)
     {
         if (trim($fileName) != '') {
             $this->fileName = $fileName;
+            $this->delimiter = $delimiter;
+            $this->header = $header;
+            $this->fileReadsAndExists($fileName);
         }
+
     }
 
-    // public function fileReadsAndExists(string $fileName)
-    // {
-
-    //     if(file_exists($fileName) || !is_readable($filename)){
-    //         throw new CsvExpception("File does not exisit or is not readable!");
-    //         return false;
-    //     }
-        
-    //     $this->fileName = $fileName;
-    //     return true;
-    // }
-
-    // public function getEncoding()
-    // {
-    //     $data = file_get_contents( $this->fileName );
-        
-    //     $encodingType = mb_detect_encoding( $data, $this->encodingTypes, TRUE );
-
-    //     return $encodingType;
-    // }
-
-    // public function convertEncoding($fileName) 
-    // { 
-
-    //     if( $encoding !== "UTF-8" ) {
-    //         $data = mb_convert_encoding( $data, $this->encoding, $encodingType );
-    //     }
-
-    //     return $data;
-
-
-    //     $input = mb_convert_encoding( $input, "UTF-8", $encoding );
-    //     $fc = iconv('windows-1250', 'utf-8', file_get_contents($fileName)); 
-    //     $handle = fopen("php://memory", "rw"); 
-    //     fwrite($handle, $fc); 
-    //     fseek($handle, 0);
-    //     return $handle; 
-    // } 
-
-    public function parse($max_lines = 0)
+    public function fileReadsAndExists(string $fileName)
     {
         if (!isset($this->fileName)) {
-            throw new CsvException("File not set!");
+            throw new CsvException("File name not set!");
             return false;
         }
 
-        // // clear results
-        // $this->reset();
+        if(file_exists($fileName) || !is_readable($filename)){
+            throw new CsvExpception("File does not exist or is not readable!");
+            return false;
+        }
+        
+        $this->fileExists = true;
 
+        return true;
+    }
+
+    public function parse($max_lines = 0, $offset = 0)
+    {
+        if(!$this->fileExists){
+            return false;
+        }
+
+
+        $this->reset();
+
+        $this->file = fopen($this->fileName, 'r');
         // $file = fopen($this->fileName, 'r');
         // while (!feof($file)) {
         //     $row = fgetcsv($file, 0, static::$delimiter);
@@ -116,16 +99,50 @@ class ParseCsv
         // return $this->data;
     }
 
-    // public function getRowCount()
-    // {
-    //     return $this->$row_count;
-    // }
+    public function convertEncoding(string $type = 'UTF-8') 
+    { 
+        if(!$this->fileExists){
+            throw new CsvExpception("File does not exist or is not readable!");
+            return false;
+        }
 
+        $this->encoding = $type;
 
-    // private function reset()
-    // {
-    //     $this->header = null;
-    //     $this->data = [];
-    //     $this->row_count = 0;
-    // }
+        $data = file_get_contents( $this->fileName );
+        
+        $encodingType = mb_detect_encoding( $data, $this->encodingTypes, TRUE );
+
+        if( $encodingType !== "UTF-8" ) {
+            $data = mb_convert_encoding( $data, $this->encoding, $encodingType );
+        }
+
+        $handle = fopen("php://memory", "rw"); 
+
+        fwrite($handle, $fc); 
+
+        fseek($handle, 0);
+
+        return $handle; 
+    } 
+
+    public function lastResults(){
+        return $this->data; 
+    }
+
+    public function getRowCount()
+    {
+        return $this->$row_count;
+    }
+
+    public function getFile()
+    {
+        return $this->file;
+    }
+
+    private function reset()
+    {
+        $this->header = null;
+        $this->data = [];
+        $this->row_count = 0;
+    }
 }
