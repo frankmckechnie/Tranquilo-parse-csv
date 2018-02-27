@@ -78,31 +78,35 @@ class ParseCsv
             return false;
         }
 
-
         $this->reset();
 
         $this->file = fopen($this->fileName, 'r');
-        // $file = fopen($this->fileName, 'r');
-        // while (!feof($file)) {
-        //     $row = fgetcsv($file, 0, static::$delimiter);
-        //     if ($row == [null] || $row === false) {
-        //         continue;
-        //     }
-        //     if (!$this->header) {
-        //         $this->header = $row;
-        //     } else {
-        //         $this->data[] = array_combine($this->header, $row);
-        //         $this->row_count ++;
-        //     }
-        // }
-        // fclose($file);
-        // return $this->data;
+        $file = fopen($this->fileName, 'r');
+        while (!feof($file)) {
+            $row = fgetcsv($file, 0, static::$delimiter);
+            if ($row == [null] || $row === false) {
+                continue;
+            }
+            if (!$this->header) {
+                $this->header = $row;
+            } else {
+                $this->data[] = array_combine($this->header, $row);
+                $this->row_count ++;
+            }
+        }
+        fclose($file);
+        return $this->data;
     }
 
     public function convertEncoding(string $type = 'UTF-8') 
     { 
         if(!$this->fileExists){
             throw new CsvExpception("File does not exist or is not readable!");
+            return false;
+        }
+
+        if(isset($this->file)){
+            throw new CsvExpception("Must not parse then convert!");
             return false;
         }
 
@@ -122,7 +126,9 @@ class ParseCsv
 
         fseek($handle, 0);
 
-        return $handle; 
+        $this->file = $handle;
+
+        return true; 
     } 
 
     public function lastResults(){
