@@ -7,17 +7,16 @@ use Tranquilo\Exceptions\CsvException;
 
 try{
 	$parser = new ParseCsv(__DIR__ . '/test.csv');
-	$parser->convertEncoding();
-	$csvAry = $parser->parse($limit);
+	//$parser->convertEncoding();
+	$csvAry = $parser->parse(10); // $limit
+	print_r($csvAry);
 }catch(CsvException $e){
+	echo $e->getMessage();
+}catch(Exception $e){
 	echo $e->getMessage();
 }
 
 // $file = fopen(__DIR__ . '/test.csv', 'r');
 
 // //print_r($csvAry);
-
-
-// return as object or array 
-
 

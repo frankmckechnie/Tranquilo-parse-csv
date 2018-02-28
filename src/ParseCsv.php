@@ -35,35 +35,43 @@ class ParseCsv
         "UTF-16LE"
     );
 
-    private $file;
-    private $fileName;
-    private $header;
-    private $data = array();
-    private $rowCount = 0;
-    private $encoding = "UTF-8";
-    private $fileExists = false; 
+    protected $file;
+    protected $fileName;
+    protected $header;
+    protected $data = array();
+    protected $rowCount = 0;
+    protected $encoding = "UTF-8";
+    protected $fileExists = false; 
      
 
-    public function __construct(string $fileName = '', string $delimiter = ',', bool $header = false)
+    public function __construct(string $fileName = '', bool $header = false, string $delimiter = ',')
     {
         if (trim($fileName) != '') {
             $this->fileName = $fileName;
             $this->delimiter = $delimiter;
             $this->header = $header;
-            $this->fileReadsAndExists($fileName);
+            $this->fileReadsAndExists();
         }
 
     }
 
-    public function fileReadsAndExists(string $fileName)
+    public function __destruct() 
+    { 
+        if ($this->file) 
+        {  
+            fclose($this->file); 
+        } 
+    } 
+
+    public function fileReadsAndExists()
     {
         if (!isset($this->fileName)) {
             throw new CsvException("File name not set!");
             return false;
         }
 
-        if(file_exists($fileName) || !is_readable($filename)){
-            throw new CsvExpception("File does not exist or is not readable!");
+        if(!file_exists($this->fileName) || !is_readable($this->fileName)){
+            throw new CsvException("File does not exist or is not readable!");
             return false;
         }
         
@@ -72,7 +80,7 @@ class ParseCsv
         return true;
     }
 
-    public function parse($max_lines = 0, $offset = 0)
+    public function parse(int $max_lines = 0, int $offset = 0)
     {
         if(!$this->fileExists){
             return false;
@@ -80,33 +88,50 @@ class ParseCsv
 
         $this->reset();
 
-        $this->file = fopen($this->fileName, 'r');
-        $file = fopen($this->fileName, 'r');
-        while (!feof($file)) {
-            $row = fgetcsv($file, 0, static::$delimiter);
+
+        $this->file = (isset($this->file)) ? $this->file : fopen($this->fileName, 'r');
+
+        if ($max_lines > 0) {
+            $line_count = 0; 
+        }else {
+            $line_count = -1; 
+        }
+
+        while ($line_count < $max_lines && !feof($this->file)) {
+            
+            $row = fgetcsv($this->file, 0, $this->delimiter);
+            
             if ($row == [null] || $row === false) {
                 continue;
             }
+
             if (!$this->header) {
                 $this->header = $row;
             } else {
                 $this->data[] = array_combine($this->header, $row);
                 $this->row_count ++;
             }
+
+            if ($max_lines > 0){ 
+                $line_count++; 
+            }
+
         }
-        fclose($file);
+
+        //fclose($file);
+        
         return $this->data;
     }
 
     public function convertEncoding(string $type = 'UTF-8') 
     { 
         if(!$this->fileExists){
-            throw new CsvExpception("File does not exist or is not readable!");
+            throw new CsvException("File does not exist or is not readable!");
             return false;
         }
 
         if(isset($this->file)){
-            throw new CsvExpception("Must not parse then convert!");
+            throw new CsvException("Must not parse then convert!");
             return false;
         }
 
