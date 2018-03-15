@@ -14,7 +14,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  *
- * @license http://opensource.org/licenses/Apache-2.0 Apache 2.0 License (Frank Mckechnie)
+ * @license http://opensource.org/licenses/Apache-2.0 Apache 2.0 License Frank Mckechnie
  */
  
 namespace Tranquilo;
@@ -106,7 +106,70 @@ class ParseCsv
         return true;
     }
 
-    public function parse(int $max_lines = 0, int $offset = 0)
+    public function convertEncoding(string $type = 'UTF-8')
+    {
+        if (!$this->fileExists) {
+            throw new CsvException("File does not exist or is not readable!");
+            return false;
+        }
+
+        if (isset($this->file)) {
+            throw new CsvException("Must not parse then convert!");
+            return false;
+        }
+
+        $this->encoding = $type;
+
+        $data = file_get_contents($this->fileName);
+
+        $encodingType = mb_detect_encoding($data, $this->encodingTypes, true);
+
+        if ($encodingType !== $this->encoding) {
+            $data = mb_convert_encoding($data, $this->encoding, $encodingType);
+        }
+
+        $handle = fopen("php://memory", "rw");
+
+        fwrite($handle, $data);
+
+        fseek($handle, 0);
+
+        $this->file = $handle;
+
+        return true;
+    }
+
+    public function get(int $max_lines = 0, int $offset = 0) 
+    {
+        return $this->parse($max_lines, $offset);
+    }
+
+    public function getWithOffset(int $offset  = 0) 
+    {
+        return $this->parse(0, $offset);
+    }
+
+    public function lastResults()
+    {
+        return $this->data;
+    }
+
+    public function getRowCount()
+    {
+        return $this->$row_count;
+    }
+
+    public function closeFile()
+    {
+        return isset($this->file) ? fclose($this->file) : false;
+    }
+
+    public function getFile()
+    {
+        return $this->file;
+    }
+
+    protected function parse(int $max_lines = 0, int $offset = 0)
     {
         if (!$this->fileExists) {
             return false;
@@ -150,60 +213,7 @@ class ParseCsv
         }
 
         return $this->data;
-    }
-
-    public function convertEncoding(string $type = 'UTF-8')
-    {
-        if (!$this->fileExists) {
-            throw new CsvException("File does not exist or is not readable!");
-            return false;
-        }
-
-        if (isset($this->file)) {
-            throw new CsvException("Must not parse then convert!");
-            return false;
-        }
-
-        $this->encoding = $type;
-
-        $data = file_get_contents($this->fileName);
-
-        $encodingType = mb_detect_encoding($data, $this->encodingTypes, true);
-
-        if ($encodingType !== $this->encoding) {
-            $data = mb_convert_encoding($data, $this->encoding, $encodingType);
-        }
-
-        $handle = fopen("php://memory", "rw");
-
-        fwrite($handle, $data);
-
-        fseek($handle, 0);
-
-        $this->file = $handle;
-
-        return true;
-    }
-
-    public function lastResults()
-    {
-        return $this->data;
-    }
-
-    public function getRowCount()
-    {
-        return $this->$row_count;
-    }
-
-    public function closeFile()
-    {
-        return isset($this->file) ? fclose($this->file) : false;
-    }
-
-    public function getFile()
-    {
-        return $this->file;
-    }
+    }   
 
     private function reset()
     {
