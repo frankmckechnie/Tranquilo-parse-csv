@@ -6,8 +6,8 @@ use Tranquilo\Exceptions\CsvException;
 
 try{
 	$csv = new ParseCsv(__DIR__ . '/test.csv');
-	$csv->convertEncoding('UTF-8');
-	$csvAry = $csv->get(2, 20); 
+	// $csv->convertEncoding('UTF-8');
+	$csvAry = $csv->get(5); 
 	print_r($csvAry);
 }catch(CsvException $e){
 	echo $e->getMessage();

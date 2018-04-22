@@ -53,13 +53,14 @@ class ParseCsv
     protected $file;
 
     /**
-     * [$fileName description]
-     * @var [type]
+     * The location of the file
+     * 
+     * @var string
      */
     protected $fileName;
 
     /**
-     * [$header description]
+     * 
      * @var null
      */
     protected $header = null;
@@ -190,18 +191,19 @@ class ParseCsv
             
             $row = fgetcsv($this->file, 0, $this->delimiter);
 
-            if ($offset > 0) {
-                $row = null;
-                $offset--;
-            }
-            
-            if ($row == [null] || $row === false) {
-                continue;
-            }
-
             if (!$this->header) {
                 $this->header = $row;
             } else {
+
+                if ($offset > 0) {
+                    $row = null;
+                    $offset--;
+                }
+
+                if ($row == [null] || $row === false) {
+                    continue;
+                }
+
                 $this->data[] = array_combine($this->header, $row);
                 $this->row_count ++;
             }
