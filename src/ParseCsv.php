@@ -25,14 +25,14 @@ class ParseCsv
 {
     /**
      * String delimiter which is used to format the csv
-     * 
+     *
      * @var string
      */
     public $delimiter;
 
     /**
      * Set of encoding types to check against
-     * 
+     *
      * @var array
      */
     public $encodingTypes = array(
@@ -46,57 +46,64 @@ class ParseCsv
     );
 
     /**
-     * binded to a file pointer resource
+     * tells parse if the file has been converted
      * 
+     * @var boolean
+     */
+    protected $converted = false;
+
+    /**
+     * binded to a file pointer resource
+     *
      * @var resource
      */
     protected $file;
 
     /**
      * The location of the file
-     * 
+     *
      * @var string
      */
     protected $fileName;
 
     /**
      * Used to set the first row of the csv
-     * 
+     *
      * @var null
      */
     protected $header = null;
 
     /**
      * array format of the csv
-     * 
+     *
      * @var array
      */
     protected $data = array();
 
     /**
      * count of all rows within the csv
-     * 
+     *
      * @var array
      */
     protected $rowCount = 0;
 
     /**
      * Type of encoding the file is to be set to
-     * 
+     *
      * @var string
      */
     protected $encoding = "UTF-8";
 
     /**
      * settable var to be set wehn the file exisits
-     * 
+     *
      * @var boolean
      */
     protected $fileExists = false;
     
     /**
      * create new hook to file
-     * 
+     *
      * @param string    $filename The path to the file
      * @param string    $delimiter The delimiter for parsing the csv
      */
@@ -112,7 +119,7 @@ class ParseCsv
 
     /**
      * checks to see if the file reads and exists
-     * 
+     *
      * @return bool
      */
     public function fileReadsAndExists()
@@ -134,9 +141,9 @@ class ParseCsv
 
     /**
      * converts the current encoding
-     * 
-     * @param  string $type sets the type of encoding 
-     * 
+     *
+     * @param  string $type sets the type of encoding
+     *
      * @return bool
      */
     public function convertEncoding(string $type = 'UTF-8')
@@ -168,38 +175,39 @@ class ParseCsv
         fseek($handle, 0);
 
         $this->file = $handle;
+        $this->converted = true;
 
         return true;
     }
 
     /**
      * calls the parse fucntion with two params
-     * 
+     *
      * @param  int|integer $max_lines sets the max amount of rows returned
      * @param  int|integer $offset sets the starting point of looping
-     * 
+     *
      * @return array
      */
-    public function get(int $max_lines = 0, int $offset = 0) 
+    public function get(int $max_lines = 0, int $offset = 0)
     {
         return $this->parse($max_lines, $offset);
     }
 
     /**
      * gets all rows with just an offset
-     * 
+     *
      * @param  int|integer $offset sets the starting point of looping
-     * 
+     *
      * @return array
      */
-    public function getWithOffset(int $offset  = 0) 
+    public function getWithOffset(int $offset = 0)
     {
         return $this->parse(0, $offset);
     }
 
     /**
      * retuns the last results
-     * 
+     *
      * @return array
      */
     public function lastResults()
@@ -209,7 +217,7 @@ class ParseCsv
 
     /**
      * returns the current row count
-     * 
+     *
      * @return integer
      */
     public function getRowCount()
@@ -218,11 +226,11 @@ class ParseCsv
     }
 
     /**
-     * Parses the csv 
-     * 
+     * Parses the csv
+     *
      * @param  int|integer $max_lines sets the max amount of rows returned
      * @param  int|integer $offset sets the starting point of looping
-     * 
+     *
      * @return [type]
      */
     protected function parse(int $max_lines = 0, int $offset = 0)
@@ -233,17 +241,17 @@ class ParseCsv
 
         $this->reset();
 
-        $this->file = (isset($this->file)) ? $this->file : fopen($this->fileName, 'r');
+        $this->file = ($this->converted) ? $this->file : fopen($this->fileName, 'r');
 
         if ($max_lines > 0) {
             $line_count = 0;
-            $max_lines = $max_lines + 1 + $offset;
+            $max_lines = $max_lines + $offset;
         } else {
             $line_count = -1;
         }
 
         while ($line_count < $max_lines && !feof($this->file)) {
-            
+
             $row = fgetcsv($this->file, 0, $this->delimiter);
 
             if (!$this->header) {
@@ -251,37 +259,35 @@ class ParseCsv
             } else {
 
                 if ($offset > 0) {
-                    $row = null;
+                    $row = false;
                     $offset--;
                 }
 
-                if ($row == [null] || $row === false) {
-                    continue;
+                if ($row != [null] && $row != false) {
+                    $this->data[] = array_combine($this->header, $row);
+                    $this->row_count ++;
                 }
 
-                $this->data[] = array_combine($this->header, $row);
-                $this->row_count ++;
+                if ($max_lines > 0) {
+                    $line_count++;
+                }
             }
-
-            if ($max_lines > 0) {
-                $line_count++;
-            }
-
         }
 
         fclose($this->file);
 
         return $this->data;
-    }   
+    }
 
     /**
      * resets the values when $this->parse is called
-     * 
+     *
      * @return void
      */
     private function reset()
     {
         $this->data = [];
         $this->row_count = 0;
+        $this->header = null;
     }
 }
