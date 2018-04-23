@@ -60,36 +60,61 @@ class ParseCsv
     protected $fileName;
 
     /**
+     * Used to set the first row of the csv
      * 
      * @var null
      */
     protected $header = null;
 
     /**
-     * [$data description]
+     * array format of the csv
+     * 
      * @var array
      */
     protected $data = array();
+
+    /**
+     * count of all rows within the csv
+     * 
+     * @var array
+     */
     protected $rowCount = 0;
+
+    /**
+     * Type of encoding the file is to be set to
+     * 
+     * @var string
+     */
     protected $encoding = "UTF-8";
+
+    /**
+     * settable var to be set wehn the file exisits
+     * 
+     * @var boolean
+     */
     protected $fileExists = false;
-     
-    public function __construct(string $fileName = '', bool $header = false, string $delimiter = ',')
+    
+    /**
+     * create new hook to file
+     * 
+     * @param string    $filename The path to the file
+     * @param string    $delimiter The delimiter for parsing the csv
+     */
+    public function __construct(string $fileName = '', string $delimiter = ',')
     {
         if (trim($fileName) != '') {
             $this->fileName = $fileName;
             $this->delimiter = $delimiter;
-            $this->header = $header;
             $this->fileReadsAndExists();
         }
 
     }
 
-    public function __destruct()
-    {
-        $this->closeFile();
-    }
-
+    /**
+     * checks to see if the file reads and exists
+     * 
+     * @return bool
+     */
     public function fileReadsAndExists()
     {
         if (!isset($this->fileName)) {
@@ -107,6 +132,13 @@ class ParseCsv
         return true;
     }
 
+    /**
+     * converts the current encoding
+     * 
+     * @param  string $type sets the type of encoding 
+     * 
+     * @return bool
+     */
     public function convertEncoding(string $type = 'UTF-8')
     {
         if (!$this->fileExists) {
@@ -140,36 +172,59 @@ class ParseCsv
         return true;
     }
 
+    /**
+     * calls the parse fucntion with two params
+     * 
+     * @param  int|integer $max_lines sets the max amount of rows returned
+     * @param  int|integer $offset sets the starting point of looping
+     * 
+     * @return array
+     */
     public function get(int $max_lines = 0, int $offset = 0) 
     {
         return $this->parse($max_lines, $offset);
     }
 
+    /**
+     * gets all rows with just an offset
+     * 
+     * @param  int|integer $offset sets the starting point of looping
+     * 
+     * @return array
+     */
     public function getWithOffset(int $offset  = 0) 
     {
         return $this->parse(0, $offset);
     }
 
+    /**
+     * retuns the last results
+     * 
+     * @return array
+     */
     public function lastResults()
     {
         return $this->data;
     }
 
+    /**
+     * returns the current row count
+     * 
+     * @return integer
+     */
     public function getRowCount()
     {
         return $this->$row_count;
     }
 
-    public function closeFile()
-    {
-        return isset($this->file) ? fclose($this->file) : false;
-    }
-
-    public function getFile()
-    {
-        return $this->file;
-    }
-
+    /**
+     * Parses the csv 
+     * 
+     * @param  int|integer $max_lines sets the max amount of rows returned
+     * @param  int|integer $offset sets the starting point of looping
+     * 
+     * @return [type]
+     */
     protected function parse(int $max_lines = 0, int $offset = 0)
     {
         if (!$this->fileExists) {
@@ -214,9 +269,16 @@ class ParseCsv
 
         }
 
+        fclose($this->file);
+
         return $this->data;
     }   
 
+    /**
+     * resets the values when $this->parse is called
+     * 
+     * @return void
+     */
     private function reset()
     {
         $this->data = [];
