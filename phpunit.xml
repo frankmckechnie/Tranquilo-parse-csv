@@ -4,7 +4,7 @@
 			verbose="true">
     <testsuites>
         <testsuite name="Application Test Suite">
-            <directory>tests</directory>
+            <directory suffix="ParseCsv.php">./tests/unit</directory>
         </testsuite>
     </testsuites>
 </phpunit>
