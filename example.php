@@ -6,7 +6,7 @@ use Tranquilo\Exceptions\CsvException;
 
 try{
 	
-	$csv = new ParseCsv(__DIR__ . '/tesdt.csv', ","); // filepath, delimiter
+	$csv = new ParseCsv(__DIR__ . '/test.csv', " "); // filepath, delimiter : optional
 	
 	// optional convert the encoding
 	//$csv->convertEncoding('UTF-8');

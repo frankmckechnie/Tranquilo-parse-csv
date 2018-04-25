@@ -107,14 +107,11 @@ class ParseCsv
      * @param string    $filename The path to the file
      * @param string    $delimiter The delimiter for parsing the csv
      */
-    public function __construct(string $fileName = '', string $delimiter = ',')
+    public function __construct(string $fileName = null, string $delimiter = ',')
     {
-        if (trim($fileName) != '') {
-            $this->fileName = $fileName;
-            $this->delimiter = $delimiter;
-            $this->fileReadsAndExists();
-        }
-
+        $this->fileName = $fileName;
+        $this->delimiter = $delimiter;
+        $this->fileReadsAndExists();
     }
 
     /**
@@ -125,12 +122,12 @@ class ParseCsv
     public function fileReadsAndExists()
     {
         if (!isset($this->fileName)) {
-            throw new CsvException("File name not set!");
+            throw new CsvException("File name not set!" . " filepath:" . $this->fileName);
             return false;
         }
 
         if (!file_exists($this->fileName) || !is_readable($this->fileName)) {
-            throw new CsvException("File does not exist or is not readable!");
+            throw new CsvException("File does not exist or is not readable!"." filepath:" . $this->fileName);
             return false;
         }
         
@@ -222,7 +219,7 @@ class ParseCsv
      */
     public function getRowCount()
     {
-        return $this->$row_count;
+        return $this->rowCount;
     }
 
     /**
@@ -265,7 +262,7 @@ class ParseCsv
 
                 if ($row != [null] && $row != false) {
                     $this->data[] = array_combine($this->header, $row);
-                    $this->row_count ++;
+                    $this->rowCount ++;
                 }
 
                 if ($max_lines > 0) {
@@ -287,7 +284,7 @@ class ParseCsv
     private function reset()
     {
         $this->data = [];
-        $this->row_count = 0;
+        $this->rowCount = 0;
         $this->header = null;
     }
 }

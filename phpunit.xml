@@ -3,8 +3,8 @@
 			colors="true"
 			verbose="true">
     <testsuites>
-        <testsuite name="Application Test Suite">
-            <directory suffix="ParseCsv.php">./tests/unit</directory>
+        <testsuite name="Test Suite">
+            <directory suffix=".php">tests</directory>
         </testsuite>
     </testsuites>
 </phpunit>
