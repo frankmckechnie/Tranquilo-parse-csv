@@ -2,7 +2,6 @@
 require __DIR__ . '/vendor/autoload.php';
 
 use Tranquilo\ParseCsv;
-///use Tranquilo\Exceptions\CsvException;
 
 try{
 
