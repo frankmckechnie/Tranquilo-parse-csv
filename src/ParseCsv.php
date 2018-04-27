@@ -77,15 +77,12 @@ class ParseCsv
         fclose($file);
         return $this->data;
     }
-
-
-
+ 
     public function getRowCount()
     {
         return $this->$row_count;
     }
-
-
+ 
     private function reset() 
     {
     	$this->header = NULL;
