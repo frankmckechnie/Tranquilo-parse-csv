@@ -14,79 +14,298 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  *
- * @license http://opensource.org/licenses/Apache-2.0 Apache 2.0 License (Frank Mckechnie)
+ * @license http://opensource.org/licenses/Apache-2.0 Apache 2.0 License Frank Mckechnie
  */
  
 namespace Tranquilo;
 
+use Tranquilo\Exceptions\CsvException;
+
 class ParseCsv
 {
-     
-    public static $delimiter = ",";
+    /**
+     * String delimiter which is used to format the csv
+     *
+     * @var string
+     */
+    public $delimiter;
 
-    private $fileName;
-    private $header;
-    private $data = [];
-    private $row_count = 0;
+    /**
+     * Set of encoding types to check against
+     *
+     * @var array
+     */
+    public $encodingTypes = array(
+        "UTF-8",
+        "UTF-32",
+        "UTF-32BE",
+        "UTF-32LE",
+        "UTF-16",
+        "UTF-16BE",
+        "UTF-16LE"
+    );
 
-    public function __construct($fileName = '')
+    /**
+     * tells parse if the file has been converted
+     *
+     * @var boolean
+     */
+    protected $converted = false;
+
+    /**
+     * binded to a file pointer resource
+     *
+     * @var resource
+     */
+    protected $file;
+
+    /**
+     * The location of the file
+     *
+     * @var string
+     */
+    protected $fileName;
+
+    /**
+     * Used to set the first row of the csv
+     *
+     * @var null
+     */
+    protected $header = null;
+
+    /**
+     * array format of the csv
+     *
+     * @var array
+     */
+    protected $data = array();
+
+    /**
+     * count of all rows within the csv
+     *
+     * @var array
+     */
+    protected $rowCount = 0;
+
+    /**
+     * Type of encoding the file is to be set to
+     *
+     * @var string
+     */
+    protected $encoding = "UTF-8";
+
+    /**
+     * settable var to be set wehn the file exisits
+     *
+     * @var boolean
+     */
+    protected $fileExists = false;
+    
+    /**
+     * create new hook to file
+     *
+     * @param string    $filename The path to the file
+     * @param string    $delimiter The delimiter for parsing the csv
+     */
+    public function __construct(string $fileName = null, string $delimiter = ',')
     {
-        if ($fileName != '') {
-            $this->fileName = $fileName;
+        $this->fileName = $fileName;
+        $this->delimiter = $delimiter;
+        $this->fileReadsAndExists();
+    }
+
+    /**
+     * Destuct method to remove file
+     *
+     * @return void
+     */
+    public function __destruct()
+    {
+        $this->closeFile();
+    }
+
+    /**
+     * checks to see if the file reads and exists
+     *
+     * @return bool
+     */
+    public function fileReadsAndExists()
+    {
+        if (!isset($this->fileName)) {
+            throw new CsvException("File name not set!" . " filepath:" . $this->fileName);
+            return false;
         }
 
+        if (!file_exists($this->fileName) || !is_readable($this->fileName)) {
+            throw new CsvException("File does not exist or is not readable!"." filepath:" . $this->fileName);
+            return false;
+        }
+        
+        $this->fileExists = true;
+
+        return true;
     }
 
-    public function file(string $fileName)
+    /**
+     * converts the current encoding
+     *
+     * @param  string $type sets the type of encoding
+     *
+     * @return bool
+     */
+    public function convertEncoding(string $type = 'UTF-8')
     {
-    	if (file_exists($fileName)) {
-    		echo "File does not exists";
-    		return false;
-    	} elseif (!is_readable($filename)) {
-    		echo "File is not readable";
-    		return false;
-    	}
-    	
-    	$this->fileName = $fileName;
-    	return true;
+        $this->encoding = $type;
+
+        $data = file_get_contents($this->fileName);
+
+        $encodingType = mb_detect_encoding($data, $this->encodingTypes, true);
+
+        if ($encodingType !== $this->encoding) {
+            $data = mb_convert_encoding($data, $this->encoding, $encodingType);
+        }
+
+        $handle = fopen("php://memory", "rw");
+
+        fwrite($handle, $data);
+
+        fseek($handle, 0);
+
+        $this->file = $handle;
+        $this->converted = true;
+
+        return true;
     }
 
-    public function parse()
+    /**
+     * calls the parse fucntion with two params
+     *
+     * @param  int|integer $max_lines sets the max amount of rows returned
+     * @param  int|integer $offset sets the starting point of looping
+     *
+     * @return array
+     */
+    public function get(int $max_lines = 0, int $offset = 0)
     {
-    	if (!isset($this->fileName)) {
-    		echo "File not set!";
-    		return false;
-    	}
+        return $this->parse($max_lines, $offset);
+    }
 
-    	// clear results 
-    	$this->reset();
+    /**
+     * gets all rows with just an offset
+     *
+     * @param  int|integer $offset sets the starting point of looping
+     *
+     * @return array
+     */
+    public function getWithOffset(int $offset = 0)
+    {
+        return $this->parse(0, $offset);
+    }
 
-        $file = fopen($this->fileName, 'r');
-        while (!feof($file)) {
-            $row = fgetcsv($file, 0, static::$delimiter);
-            if ($row == [null] || $row === false) {
-                continue;
-            }
+    /**
+     * retuns the last results
+     *
+     * @return array
+     */
+    public function lastResults()
+    {
+        return $this->data;
+    }
+
+    /**
+     * returns the current row count
+     *
+     * @return integer
+     */
+    public function getRowCount()
+    {
+        return $this->rowCount;
+    }
+
+   /**
+     * gets the file
+     *
+     * @return resource
+     */
+    public function getFile()
+    {
+        return is_resource($this->file) ? $this->file : false;
+    }
+
+    /**
+     * closes the file
+     *
+     * @return void
+     */
+    private function closeFile()
+    {
+        return isset($this->file) ? fclose($this->file) : false;
+    }
+
+
+    /**
+     * Parses the csv
+     *
+     * @param  int|integer $max_lines sets the max amount of rows returned
+     * @param  int|integer $offset sets the starting point of looping
+     *
+     * @return [type]
+     */
+    protected function parse(int $max_lines = 0, int $offset = 0)
+    {
+        if (!$this->fileExists) {
+            return false;
+        }
+
+        $this->reset();
+
+        $this->file = ($this->file) ? $this->file : fopen($this->fileName, 'r');
+
+        if ($max_lines > 0) {
+            $line_count = 0;
+            $max_lines = $max_lines + $offset;
+        } else {
+            $line_count = -1;
+        }
+
+        while ($line_count < $max_lines && !feof($this->file)) {
+
+            $row = fgetcsv($this->file, 0, $this->delimiter);
+
             if (!$this->header) {
                 $this->header = $row;
             } else {
-                $this->data[] = array_combine($this->header, $row);
-                $this->row_count ++;
+
+                if ($offset > 0) {
+                    $row = false;
+                    $offset--;
+                }
+
+                if ($row != [null] && $row != false) {
+                    $this->data[] = array_combine($this->header, $row);
+                    $this->rowCount ++;
+                }
+
+                if ($max_lines > 0) {
+                    $line_count++;
+                }
             }
         }
-        fclose($file);
+
+        fseek($this->file, 0, SEEK_SET);
+
         return $this->data;
     }
- 
-    public function getRowCount()
+
+    /**
+     * resets the values when $this->parse is called
+     *
+     * @return void
+     */
+    private function reset()
     {
-        return $this->$row_count;
-    }
- 
-    private function reset() 
-    {
-    	$this->header = NULL;
-    	$this->data = [];
-    	$this->row_count = 0;
+        $this->data = [];
+        $this->rowCount = 0;
+        $this->header = null;
     }
 }
