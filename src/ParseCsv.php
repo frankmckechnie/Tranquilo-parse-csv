@@ -47,7 +47,7 @@ class ParseCsv
 
     /**
      * tells parse if the file has been converted
-     * 
+     *
      * @var boolean
      */
     protected $converted = false;
@@ -115,6 +115,16 @@ class ParseCsv
     }
 
     /**
+     * Destuct method to remove file
+     *
+     * @return void
+     */
+    public function __destruct()
+    {
+        $this->closeFile();
+    }
+
+    /**
      * checks to see if the file reads and exists
      *
      * @return bool
@@ -145,16 +155,6 @@ class ParseCsv
      */
     public function convertEncoding(string $type = 'UTF-8')
     {
-        if (!$this->fileExists) {
-            throw new CsvException("File does not exist or is not readable!");
-            return false;
-        }
-
-        if (isset($this->file)) {
-            throw new CsvException("Must not parse then convert!");
-            return false;
-        }
-
         $this->encoding = $type;
 
         $data = file_get_contents($this->fileName);
@@ -222,6 +222,27 @@ class ParseCsv
         return $this->rowCount;
     }
 
+   /**
+     * gets the file
+     *
+     * @return resource
+     */
+    public function getFile()
+    {
+        return is_resource($this->file) ? $this->file : false;
+    }
+
+    /**
+     * closes the file
+     *
+     * @return void
+     */
+    private function closeFile()
+    {
+        return isset($this->file) ? fclose($this->file) : false;
+    }
+
+
     /**
      * Parses the csv
      *
@@ -238,7 +259,7 @@ class ParseCsv
 
         $this->reset();
 
-        $this->file = ($this->converted) ? $this->file : fopen($this->fileName, 'r');
+        $this->file = ($this->file) ? $this->file : fopen($this->fileName, 'r');
 
         if ($max_lines > 0) {
             $line_count = 0;
@@ -271,7 +292,7 @@ class ParseCsv
             }
         }
 
-        fclose($this->file);
+        fseek($this->file, 0, SEEK_SET);
 
         return $this->data;
     }
