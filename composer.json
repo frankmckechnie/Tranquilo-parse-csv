@@ -2,6 +2,8 @@
     "name": "tranquilo/parsecsv",
     "description": "A simple CSV parser, returns a multidimensional array. The class is very easy to install and use within a PSR compatiable psr compati",
     "license": "Apache-2.0",
+    "keywords": ["Csv", "parsing", "csv parsing", "parser"],
+    "type": "package",
     "authors": [
         {
             "name": "Frank",
@@ -18,5 +20,6 @@
         "psr-4": {
             "Tranquilo\\" : "src/"
         }
-    }
+    },
+    "version": "1.0.0" 
 }
