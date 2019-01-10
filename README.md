@@ -29,7 +29,6 @@ use Tranquilo\ParseCsv;
 ///use Tranquilo\Exceptions\CsvException;
 
 try{
-
 	// filepath, delimiter : optional
 	$csv = new ParseCsv(__DIR__ . '/test.csv', ","); 
 	
@@ -47,11 +46,16 @@ try{
 
 	print_r($allRowsCsv);
 
-	unset($csv)
+	unset($csv);
+	
 }catch(CsvException $e){
+
 	echo $e->getMessage();
+	
 }catch(Exception $e){
+
 	echo $e->getMessage();
+	
 }
 
 
